@@ -25,8 +25,8 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: "{{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag }}"
+        imagePullPolicy: {{ .Values.proxyService.image.pullPolicy }}
         ports:
           - containerPort: 8000
         livenessProbe:
@@ -36,9 +36,9 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 08000
+            port: 8000
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.proxyService.resources | nindent 12 }}
 ---
 apiVersion: v1
 kind: Service
@@ -51,5 +51,9 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   selector:
-    {{- include "proxy.selectorLabels" . | nindent 6 }}
+    app: proxy-service
+  ports:
+  - port: {{ .Values.proxyService.service.port }}
+    targetPort: {{ .Values.proxyService.service.targetPort }}
+  type: {{ .Values.proxyService.service.type }}
 {{- end }}
