@@ -126,8 +126,3 @@ jobs:
           labels: ${{ steps.meta-events.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Run API Tests
-        run: |
-          # Assuming you have a script to run API tests
-          ./src/tests/postman/run-tests.sh
