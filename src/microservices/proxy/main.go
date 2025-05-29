@@ -10,6 +10,7 @@ import (
     "os"
     "strconv"
     "time"
+		"strings"
 
     "github.com/gin-gonic/gin"
 )
@@ -24,12 +25,12 @@ func main() {
 
     monolithURL := os.Getenv("MONOLITH_URL")
     if monolithURL == "" {
-        monolithURL = "http://monolith:8080"
+        monolithURL = "http://localhost:8080"
     }
 
     moviesServiceURL := os.Getenv("MOVIES_SERVICE_URL")
     if moviesServiceURL == "" {
-        moviesServiceURL = "http://movies-service:8081"
+        moviesServiceURL = "http://localhost:8081"
     }
 
     gradualMigration := os.Getenv("GRADUAL_MIGRATION") == "true"
@@ -40,12 +41,10 @@ func main() {
 
     r := gin.Default()
 
-    // Health check endpoint
     r.GET("/health", func(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{"status": "OK"})
     })
 
-    // Handle /movies/*path
     r.Any("/api/movies/*path", func(c *gin.Context) {
         if gradualMigration && rand.Intn(100) <= moviesMigrationPercent {
             forwardRequest(c, moviesServiceURL)
@@ -54,7 +53,6 @@ func main() {
         }
     })
 
-    // Handle all other paths
     r.Any("/api/users/*path", func(c *gin.Context) {
         forwardRequest(c, monolithURL)
     })
@@ -64,12 +62,14 @@ func main() {
 }
 
 func forwardRequest(c *gin.Context, targetURL string) {
-    // path := c.FullPath()
-		path := "/api/movies/health"
+		path := c.Request.URL.Path
+
+		if strings.HasSuffix(path, "/") && len(path) > 1 {
+			path = path[:len(path)-1]
+		}
 
 		fmt.Println("TEST", targetURL, path)
 
-    // Создаем контекст без таймаута
     ctx, cancel := context.WithCancel(context.Background())
     defer cancel()
 
@@ -103,14 +103,6 @@ func forwardRequest(c *gin.Context, targetURL string) {
     }
 
 		fmt.Println("TEST4", resp, err)
-    // Handle redirects
-    if resp.StatusCode == http.StatusMovedPermanently || resp.StatusCode == http.StatusFound {
-        location := resp.Header.Get("Location")
-        if location != "" {
-            c.Redirect(resp.StatusCode, location)
-            return
-        }
-    }
 
     c.Writer.WriteHeader(resp.StatusCode)
     c.Writer.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
