@@ -28,15 +28,15 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-          - containerPort: 8000
+          - containerPort: 8082
         livenessProbe:
           httpGet:
             path: /health
-            port: 8000
+            port: 8082
         readinessProbe:
           httpGet:
             path: /health
-            port: 08000
+            port: 8082
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
 ---
