@@ -12,6 +12,7 @@ System_Ext(sensor, "Sensor", "Обогреватель/кондиционер")
 System_Ext(lighter, "Lighter", "Свет")
 
 Container(WebApp, "Веб-интерфейс", "JavaScript", "Взаимодействие с пользователем")
+Container(MobileApp, "Моб-интерфейс", "Swift", "Взаимодействие с пользователем")
 
 Container_Boundary(AuthSystem, "Auth System") {
   Container(AuthApi, "Сервис Авторизации", "Golang", "Авторизация")
@@ -20,7 +21,8 @@ Container_Boundary(AuthSystem, "Auth System") {
 }
 
 Container_Boundary(GatewaySystem, "Gateway System") {
-  Container(GatewayApi, "Gateway Service", "Golang", "Данные о доме")
+  Container(GatewayApi, "Gateway Service", "Golang", "Gateway")
+  Container(GatewayMobileApi, "Gateway Mobile Service", "Golang", "Gateway")
   Container(RedisGateway, "Redis Gateway", "Redis", "Кеширование данных систем")
 }
 
@@ -81,21 +83,24 @@ Container_Boundary(SmartHomeMarketingSystem, "SmartHome Marketing System") {
   Container(DatabaseMarketing, "Database Marketing", "PostgreSQL", "Данные о устройствах")
 }
 
-System(GatewayApi, "Gateway API", "API для работы с моб.интерфейсами")
+System(GatewayApi, "Gateway API", "API для работы с интерфейсами")
+System(GatewayMobileApi, "Gateway Mobile API", "API для работы с моб.интерфейсами")
 System(AuthApi, "Auth API", "API Авторизации")
 System(userInfoApi, "User Info API", "API информация пользователя")
 
 Rel(user, WebApp, "Использует приложение")
+Rel(user, MobileApp, "Использует моб.приложение")
 Rel(WebApp, GatewayApi, "Обмен данными с Gateway")
+Rel(MobileApp, GatewayMobileApi, "Обмен данными с Gateway")
 Rel(userInfoApi, DatabaseUser,"Сохранение/чтение")
 
 'Rel GatewayApi
-Rel(GatewayApi, AuthSystem, "Провека токена")
-Rel(GatewayApi, SmartHomeControlSystem,"получение информации, изменение информации, отправка событий")
-Rel(GatewayApi, SmartHomeSupplierSystem,"получение информации, изменение информации, отправка событий")
-Rel(GatewayApi, SmartHomePaymentSystem,"получение информации, изменение информации, отправка событий")
-Rel(GatewayApi, SmartHomeMarketingSystem,"получение информации, изменение информации, отправка событий")
-Rel(GatewayApi, DeviceSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+Rel(GatewaySystem, AuthSystem, "Провека токена")
+Rel(GatewaySystem, SmartHomeControlSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewaySystem, SmartHomeSupplierSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewaySystem, SmartHomePaymentSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewaySystem, SmartHomeMarketingSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewaySystem, DeviceSystem,"Получение событий изменения, отправка события при срабатывания сценария")
 
 'SmartHome Control System
 System(homeApi, "Home API", "API Управлением комнаты")
@@ -110,6 +115,7 @@ Rel(lightingApi, DatabaseLighting,"Сохранение/чтение")
 Rel(homeApi, DatabaseHome,"Сохранение/чтение")
 Rel(scenarioApi, DatabaseScenario,"Сохранение/чтение")
 Rel(GatewayApi, RedisGateway,"Кеширование")
+Rel(GatewayMobileApi, RedisGateway,"Кеширование")
 
 Rel(sensorApi, TopicSensorOutput,"Событие изменения информации")
 Rel(tempApi, TopicTempOutput,"Событие изменения информации")
