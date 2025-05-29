@@ -1,0 +1,157 @@
+@startuml
+title SmartHome Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь системы умный дом")
+
+System_Ext(temp, "Temp", "Датчик температуры")
+System_Ext(sensor, "Sensor", "Обогреватель/кондиционер")
+System_Ext(lighter, "Lighter", "Свет")
+
+Container(WebApp, "Веб-интерфейс", "JavaScript", "Взаимодействие с пользователем")
+
+Container_Boundary(AuthSystem, "Auth System") {
+  Container(AuthApi, "Сервис Авторизации", "Golang", "Авторизация")
+  Container(userInfoApi, "User Info Service", "Golang", "Получение информации о пользователе")
+  Container(DatabaseUser, "Database User", "PostgreSQL", "Данные о пользователе")
+}
+
+Container_Boundary(GatewaySystem, "Gateway System") {
+  Container(GatewayApi, "Gateway Service", "Golang", "Данные о доме")
+  Container(RedisGateway, "Redis Gateway", "Redis", "Кеширование данных систем")
+}
+
+Container_Boundary(DeviceSystem, "Device System") {
+  Container(deviceApi, "Device Service", "Golang", "Получение данных о поддерживаемых устройствах")
+  Container(DatabaseDevice, "Database Device", "PostgreSQL", "Данные о устройствах")
+}
+
+Container_Boundary(SmartHomeControlSystem, "SmartHome Control System") {
+  Container_Boundary(ScenarioSystem, "Scenario System") {
+    Container(scenarioApi, "Сервис Сценариев", "Golang", "Сценарии взаимодействия со всеми топиками и сервисами")
+    Container(DatabaseScenario, "Database Scenario", "PostgreSQL", "Данные о сценариях")
+  }
+
+  Container_Boundary(HomeSystem, "Home System") {
+    Container(homeApi, "Сервис Комнат Дома", "Golang", "Данные о комнате")
+    Container(TopicHomeInput, "Topic Home Input", "Kafka","События")
+    Container(TopicHomeOutput, "Topic Home Output", "Kafka","События")
+    Container(DatabaseHome, "Database Home", "PostgreSQL", "Данные о комнате")
+  }
+
+  Container_Boundary(SensorSystem, "Sensor System") {
+    Container(sensorApi, "Sensor Service", "Golang", "Получение данных с датчика")
+    Container(TopicSensorInput, "Topic Sensor Input", "Kafka","События")
+    Container(TopicSensorOutput, "Topic Sensor Output", "Kafka","События")
+    Container(DatabaseSensor, "Database Sensor", "PostgreSQL", "Данные о датчике")
+  }
+
+  Container_Boundary(LighterSystem, "Lighter System") {
+    Container(lightingApi, "Lighting Service", "Golang", "Получение данных с датчика")
+    Container(TopicLightInput, "Topic Light Input", "Kafka","События")
+    Container(TopicLightOutput, "Topic Light Output", "Kafka","События")
+    Container(DatabaseLighting, "Database Lighting", "PostgreSQL", "Данные о свете")
+  }
+
+  Container_Boundary(TemparatureSystem, "Temperature System") {
+    Container(DatabaseTemperature, "Database Temperature", "Redis", "Данные о температуре")
+    Container(tempApi, "Temperature Service", "Golang", "Получение данных по температуре")
+    Container(TopicTempInput, "Topic Temperature Input", "Kafka","События")
+    Container(TopicTempOutput, "Topic Temperature Output", "Kafka","События")
+  }
+}
+
+Container_Boundary(SmartHomeSupplierSystem, "SmartHome Supplier System") {
+  Container(clientApi, "SmartHome Client API", "API управлением светом")
+  Container(consultingApi, "SmartHome Consulting API", "API информации о доступных устройствах")
+  Container(DatabaseSupplier, "Database Supplier Device", "PostgreSQL", "Данные о устройствах")
+}
+
+Container_Boundary(SmartHomePaymentSystem, "SmartHome Payment System") {
+  Container(paymentApi, "Payment API", "API управлением светом")
+  Container(reportApi, "Report API", "API информации о доступных устройствах")
+  Container(DatabasePayment, "Database Pament", "PostgreSQL", "Данные о устройствах")
+}
+
+Container_Boundary(SmartHomeMarketingSystem, "SmartHome Marketing System") {
+  Container(demoApi, "SmartHome Demo API", "API управлением светом")
+  Container(DatabaseMarketing, "Database Marketing", "PostgreSQL", "Данные о устройствах")
+}
+
+System(GatewayApi, "Gateway API", "API для работы с моб.интерфейсами")
+System(AuthApi, "Auth API", "API Авторизации")
+System(userInfoApi, "User Info API", "API информация пользователя")
+
+Rel(user, WebApp, "Использует приложение")
+Rel(WebApp, GatewayApi, "Обмен данными с Gateway")
+Rel(userInfoApi, DatabaseUser,"Сохранение/чтение")
+
+'Rel GatewayApi
+Rel(GatewayApi, AuthSystem, "Провека токена")
+Rel(GatewayApi, SmartHomeControlSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewayApi, SmartHomeSupplierSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewayApi, SmartHomePaymentSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewayApi, SmartHomeMarketingSystem,"получение информации, изменение информации, отправка событий")
+Rel(GatewayApi, DeviceSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+
+'SmartHome Control System
+System(homeApi, "Home API", "API Управлением комнаты")
+System(scenarioApi, "Scenario API", "API Управлением комнаты")
+System(tempApi, "Temperature API", "API управлением температуры")
+System(sensorApi, "Sensor API", "API управлением датчика")
+System(lightingApi, "Lighting API", "API управлением светом")
+
+Rel(tempApi, DatabaseTemperature,"Сохранение/чтение")
+Rel(sensorApi, DatabaseSensor,"Сохранение/чтение")
+Rel(lightingApi, DatabaseLighting,"Сохранение/чтение")
+Rel(homeApi, DatabaseHome,"Сохранение/чтение")
+Rel(scenarioApi, DatabaseScenario,"Сохранение/чтение")
+Rel(GatewayApi, RedisGateway,"Кеширование")
+
+Rel(sensorApi, TopicSensorOutput,"Событие изменения информации")
+Rel(tempApi, TopicTempOutput,"Событие изменения информации")
+Rel(homeApi, TopicHomeOutput,"Событие изменения информации")
+Rel(lightingApi, TopicLightOutput,"Событие изменения информации")
+
+Rel(TopicSensorInput, sensorApi,"Отправка собатий")
+Rel(TopicLightInput, lightingApi,"Отправка собатий")
+Rel(TopicTempInput, tempApi,"Отправка собатий")
+Rel(TopicHomeInput, homeApi,"Отправка собатий")
+
+Rel(tempApi, temp,"Отправка данных")
+Rel(sensorApi, sensor,"Отправка данных")
+Rel(lightingApi, lighter,"Отправка данных")
+
+Rel(temp, tempApi,"Отправка данных в апи")
+Rel(sensor, sensorApi,"Отправка данных в апи")
+Rel(lighter, lightingApi,"Отправка данных в апи")
+
+Rel(scenarioApi, TemparatureSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+Rel(scenarioApi, SensorSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+Rel(scenarioApi, LighterSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+Rel(scenarioApi, HomeSystem,"Получение событий изменения, отправка события при срабатывания сценария")
+
+'SmartHome Supplier System
+System(clientApi, "SmartHome Client API", "API информации о клиенте")
+System(consultingApi, "SmartHome Consulting API", "API информации о устройствах клиента")
+Rel(clientApi, DatabaseSupplier,"Сохранение/чтение")
+Rel(consultingApi, DatabaseSupplier,"Сохранение/чтение")
+
+'SmartHome Payment System
+System(paymentApi, "Payment API", "API платежей светом")
+System(reportApi, "Report API", "API отчетов")
+Rel(paymentApi, DatabasePayment,"Сохранение/чтение")
+Rel(reportApi, DatabasePayment,"Сохранение/чтение")
+
+'SmartHome Marketing System
+System(demoApi, "SmartHome Demo API", "API демо-стенда")
+Rel(demoApi, DatabaseMarketing,"Сохранение/чтение")
+
+'SmartHome Device System
+System(deviceApi, "Device API", "API информации о доступных устройствах")
+Rel(deviceApi, DatabaseDevice,"Сохранение/чтение")
+
+@enduml

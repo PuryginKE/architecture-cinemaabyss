@@ -25,7 +25,20 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        ..... тут
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - containerPort: 8000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 08000
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
 ---
 apiVersion: v1
 kind: Service
@@ -38,5 +51,5 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   selector:
-    ... и тут
+    {{- include "proxy.selectorLabels" . | nindent 6 }}
 {{- end }}

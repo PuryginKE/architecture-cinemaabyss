@@ -1,0 +1,4 @@
+ spec:
+      containers:
+      - name: proxy-service
+        image: ghcr.io/PuryginKE/architecture-cinemaabyss/proxy-service:latest
