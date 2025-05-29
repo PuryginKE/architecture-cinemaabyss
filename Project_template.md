@@ -60,6 +60,10 @@ proxy-service:
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman
 Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090
 
+[ссылка на файл тесты](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/test-local.png)
+
+[ссылка на файл топики](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/topics.png)
+
 # Задание 3
 
 Команда начала переезд в Kubernetes для лучшего масштабирования и повышения надежности.
