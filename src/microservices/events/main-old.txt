@@ -105,7 +105,6 @@ func initKafkaProducer() {
 		log.Fatalf("Failed to create Kafka producer: %v", err)
 	}
 
-  log.Printf("Message sent to topic")
 	log.Println("Kafka producer initialized successfully")
 }
 

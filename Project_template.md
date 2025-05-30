@@ -310,6 +310,12 @@ minikube tunnel
 
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и скриншот вывода event-service после вызова тестов.
 
+[ссылка на файл тест кубер pic2](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/event-service-log.png)
+
+[ссылка на файл тест кубер pic1](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/test-kuber1.png)
+
+[ссылка на файл тест кубер pic2](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/test-kuber2.png)
+
 # Задание 4
 
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу
