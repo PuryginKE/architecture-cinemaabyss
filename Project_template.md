@@ -310,7 +310,7 @@ minikube tunnel
 
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и скриншот вывода event-service после вызова тестов.
 
-[ссылка на файл тест кубер pic2](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/event-service-log.png)
+[ссылка на файл log event-service](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/event-service-log.png)
 
 [ссылка на файл тест кубер pic1](https://github.com/PuryginKE/architecture-cinemaabyss/blob/cinemaabyss/screenshots/test-kuber1.png)
 

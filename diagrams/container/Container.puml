@@ -17,20 +17,29 @@ Container_Boundary(AuthSystem, "Auth System") {
   Container(AuthApi, "Сервис Авторизации", "Golang", "Авторизация")
   Container(UserInfoApi, "User Info Service", "Golang", "Получение информации о пользователе")
   Container(DatabaseUser, "Database User", "PostgreSQL", "Данные о пользователе")
+
+  Container_Boundary(RoleSystem, "Role System") {
+    Container(RoleApi, "Сервис доступа", "Golang", "Сервис доступа к кино")
+    Container(DatabaseRole, "Database Kino", "PostgreSQL", "База доступа")
+}
 }
 
 Container_Boundary(GatewaySystem, "Gateway System") {
   Container(GatewayApi, "Gateway Service", "Golang", "Gateway")
   Container(GatewayMobileApi, "Gateway Mobile Service", "Golang", "Gateway")
+  Container(GatewayRecommenderApi, "Gateway Recommender Service", "Golang", "Gateway")
   Container(RedisGateway, "Redis Gateway", "Redis", "Кеширование данных систем")
 }
 
-Container_Boundary(KinoAccessSystem, "Kino Access System") {
   Container_Boundary(KinoSystem, "Kino System") {
     Container(KinoApi, "Киносервис", "Golang", "Набор кино")
     Container(DatabaseKino, "Database Kino", "PostgreSQL", "База с кинчиками")
-    Container(TopicKinoInput, "Topic Kino Input", "Kafka","События")
-    Container(TopicKinoOutput, "Topic Kino Output", "Kafka","События")
+  }
+
+  Container_Boundary(AdminKinoSystem, "Admin Kino System") {
+    Container(AdminKinoApi, "Киносервис Админка", "Golang", "Набор кино")
+    Container(DatabaseAdminKino, "Database Admin Kino", "PostgreSQL", "База админки кино")
+    Container(TopicAdminOutput, "Topic Admin Output", "Kafka","События добавления кино")
   }
 
   Container_Boundary(PaymentSystem, "Payment System") {
@@ -39,15 +48,14 @@ Container_Boundary(KinoAccessSystem, "Kino Access System") {
     Container(SubscriptionApi, "Сервис Подписок", "Golang", "Сервис подписок кино")
     Container(SalesApi, "Сервис Скидок", "Golang", "Сервис скидок кино")
     Container(DatabasePayment, "Database Payment", "PostgreSQL", "Данные об оплате")
-    Container(TopicPaymentOutput, "Topic Payment Output", "Kafka","Оплата киновладельцам")
+    Container(TopicPaymentOutput, "Topic Payment Output", "Kafka","События оплаты кино")
   }
-}
 
 Container_Boundary(MetadataSystem, "Metadata System") {
   Container(MetadataApi, "Metadata API", "API metadata")
   Container(DatabaseMetadata, "Database Metadata", "PostgreSQL", "Метаданные")
-  Container(TopicRecommenderInput, "Topic Recommender Input", "Kafka","События")
-  Container(TopicRecommenderOutput, "Topic Recommender Output", "Kafka","События")
+  Container(TopicMetadataInput, "Topic Metadata Input", "Kafka","События")
+  Container(TopicMetadataOutput, "Topic Metadata Output", "Kafka","События")
 }
 
 Container_Boundary(TestingSystem, "Testing System") {
@@ -57,30 +65,37 @@ Container_Boundary(TestingSystem, "Testing System") {
 
 System(GatewayApi, "Gateway API", "API для работы с интерфейсами")
 System(GatewayMobileApi, "Gateway Mobile API", "API для работы с моб.интерфейсами")
+System(GatewayRecommenderApi, "Gateway Recommender Api", "API для работы с внешней рекомендательной системой")
 System(AuthApi, "Auth API", "API Авторизации")
 System(UserInfoApi, "User Info API", "API информация пользователя")
 System(MetadataApi, "Metadata API", "API метаданных")
 System(TestApi, "Test API", "API тестовых данных")
 System(KinoApi, "Kino API", "API кино")
 System(AggregatorApi, "Aggregator API", "API Аггрегатор")
-
+System(RoleApi, "Role API", "API доступа кино")
+System(AdminKinoApi, "Admin API", "API админки")
 
 Rel(user, WebApp, "Использует приложение")
 Rel(user, MobileApp, "Использует моб.приложение")
 Rel(WebApp, GatewayApi, "Обмен данными с Gateway")
 Rel(MobileApp, GatewayMobileApi, "Обмен данными с Gateway")
 
-Rel(GatewaySystem, AuthSystem, "Провека токена")
-Rel(GatewaySystem, MetadataSystem, "Получение метаданных")
+Rel(GatewaySystem, AuthSystem, "Получение авторизационных данных")
+Rel(GatewaySystem, PaymentSystem, "Получение платежных данных")
 Rel(GatewaySystem, TestingSystem, "Получение тестовых данных")
-Rel(GatewaySystem, KinoAccessSystem, "Получение кино")
+Rel(GatewaySystem, KinoSystem, "Получение кино данных")
+Rel(GatewaySystem, AdminKinoSystem, "Получение админки кино данных")
 
-Rel(MetadataSystem, KinoAccessSystem, "Получение доступных фильмов")
-Rel(RecommenderSystem, TopicRecommenderInput, "Получение рекомендательной информации")
-Rel(KinoOwnerSystem, TopicKinoInput, "Получение фильмов")
-Rel(TopicPaymentOutput, KinoOwnerSystem, "Оплата владельцам")
+Rel(GatewayRecommenderApi, MetadataSystem, "Получение метаданных")
 
-Rel(KinoSystem, PaymentSystem, "Получение информации о покупке кино")
+Rel(RecommenderSystem, GatewayRecommenderApi, "Получение рекомендательной информации")
+
+Rel(KinoSystem, TopicMetadataInput, "Событие")
+Rel(TopicMetadataInput, MetadataApi, "Получение метаданных")
+Rel(MetadataApi, TopicMetadataOutput, "Событие")
+Rel(TopicMetadataOutput, MetadataApi, "Событие")
+
+Rel(AuthSystem, PaymentSystem, "Получение информации о покупке кино")
 
 'Rel GatewayApi
 Rel(GatewayApi, RedisGateway, "Кэширование")
@@ -90,20 +105,28 @@ Rel(GatewayMobileApi, RedisGateway, "Кэширование")
 Rel(UserInfoApi, DatabaseUser,"Сохранение/чтение")
 
 'Rel KinoAccess
+Rel(RoleApi, DatabaseRole,"Сохранение/чтение")
+
+'Rel PaymentSystem
 Rel(PaymentApi, AggregatorApi,"Сохранение/чтение")
 Rel(SalesApi, AggregatorApi,"Сохранение/чтение")
 Rel(SubscriptionApi, AggregatorApi,"Сохранение/чтение")
 Rel(AggregatorApi, DatabasePayment,"Сохранение/чтение")
+
+Rel(AggregatorApi, KinoOwnerSystem,"Сохранение/чтение")
+
+Rel(TopicPaymentOutput, RoleApi,"Сохранение/чтение")
 Rel(AggregatorApi, TopicPaymentOutput,"Сохранение/чтение")
 
+'Rel KinoSystem
 Rel(KinoApi, DatabaseKino,"Сохранение/чтение")
-Rel(TopicKinoInput, KinoApi,"Сохранение/чтение")
-Rel(KinoApi, TopicKinoOutput,"Сохранение/чтение")
 
 'Rel MetadataApi
 Rel(MetadataApi, DatabaseMetadata,"Сохранение/чтение")
-Rel(TopicRecommenderInput, MetadataApi,"Сохранение/чтение")
-Rel(MetadataApi, TopicRecommenderOutput,"Сохранение/чтение")
+
+'Rel AdminKinoSystem
+Rel(AdminKinoApi, TopicAdminOutput,"Сохранение/чтение")
+Rel(AdminKinoApi, DatabaseAdminKino,"Сохранение/чтение")
 
 'Rel TestApi
 Rel(TestApi, DatabaseTest,"Сохранение/чтение")
